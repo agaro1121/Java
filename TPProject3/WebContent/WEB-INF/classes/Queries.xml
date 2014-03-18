@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <comment>
+Queries
+    </comment>
+
+    <entry key="dropUserTable" >
+DROP TABLE USERS
+    </entry>
+
+    <entry key="dropUserTypeTable" >
+DROP TABLE USER_TYPE
+    </entry>
+
+    <entry key="dropUserTypeBridgeTable" >
+DROP TABLE USER_TYPE_BRIDGE
+    </entry>
+
+    <entry key="populateUserTypeTable" >
+INSERT INTO user_type VALUES (1,'Admin');
+		INSERT INTO
+		user_type VALUES (2,'Broker');
+		INSERT INTO user_type VALUES (3,'SE
+		Manager');
+		INSERT INTO user_type VALUES (4,'Share Holder');
+    </entry>
+
+    <entry key="getMaxID" >
+SELECT MAX(USER_ID) FROM users 
+    </entry>
+
+    <entry key="getAllUsers" >
+SELECT USER_ID, FIRSTNAME, LASTNAME,
+		USERNAME,PASSWORD, ISVERIFIED, STATUS FROM users
+    </entry>
+
+    <entry key="verifyUser" >
+UPDATE USERS SET ISVERIFIED = 'true' WHERE username =
+		?
+    </entry>
+
+    <entry key="appendUser" >
+INSERT INTO users VALUES (?,?,?,?,?,?,?)
+    </entry>
+
+    <entry key="changeStatus" >
+UPDATE users SET status = ? WHERE username = ?
+    </entry>
+
+    <entry key="appendUserType" >
+INSERT INTO user_type_bridge VALUES (?,?)
+    </entry>
+
+    <entry key="getUserByType" >
+SELECT
+		u.user_id ID,
+		u.firstname ||' '|| u.lastname Name
+		FROM users u
+		JOIN user_type_bridge utb
+		ON utb.user_id=u.user_id
+		WHERE
+		utb.type_id = ?
+		ORDER BY utb.user_id
+    </entry>
+
+    <entry key="getAllUsersByType" >
+SELECT u.username, type FROM users u
+		JOIN
+		user_type_bridge utb ON u.user_id = utb.user_id
+		JOIN user_type ut ON
+		ut.type_id = utb.type_id
+    </entry>
+
+    <entry key="listUnverifiedUsers" >
+SELECT username FROM users WHERE isverified = 'false'
+		ORDER BY user_id
+    </entry>
+
+    <entry key="listUsersToBan" >
+SELECT username FROM users WHERE (status != 'banned'
+		OR status is null) ORDER BY user_id
+    </entry>
+
+    <entry key="listUserstoRemove" >
+SELECT username FROM users
+		WHERE (isverified =
+		'true'AND status != 'removed') OR (isverified = 'true'AND status is
+		null)
+		ORDER BY user_id
+    </entry>
+
+    <entry key="getLoginCredentials" >
+SELECT username, password FROM users 
+    </entry>
+
+    <entry key="resetPassword" >
+UPDATE users SET password = ? WHERE username = ?
+    </entry>
+
+    <entry key="getUsersTypes" >
+SELECT type FROM users u
+		JOIN user_type_bridge utb ON
+		u.user_id = utb.user_id
+		JOIN user_type ut ON ut.type_id = utb.type_id
+		WHERE u.username = ?
+    </entry>
+
+    <entry key="submitRequest" >
+INSERT INTO user_request VALUES (?,?,?,?,?)
+    </entry>
+
+    <entry key="getUserDetails" >
+SELECT user_id, theme, ticker FROM users WHERE
+		username = ?
+    </entry>
+
+    <entry key="getAllUserRequests" >
+SELECT REQUEST_ID ID, ur.USER_ID, USERNAME,
+		DESCRIPTION, ADMIN_ID, ur.STATUS
+		FROM user_request ur
+		JOIN users u
+		ON
+		u.user_id = ur.user_id
+		WHERE ur.STATUS != 'Complete'
+		ORDER BY REQUEST_ID
+    </entry>
+
+    <entry key="getUserRequestsByAdmin" >
+SELECT ur.USER_ID, USERNAME, DESCRIPTION, ADMIN_ID,
+		ur.STATUS
+		FROM user_request ur
+		JOIN users u
+		ON u.user_id = ur.user_id
+		WHERE ADMIN_ID = ?
+		ORDER BY ur.user_id
+    </entry>
+
+    <entry key="updateUserRequest" >
+UPDATE user_request SET Status = ? WHERE request_id =
+		?
+    </entry>
+
+    <entry key="getMaxRequestID" >
+SELECT MAX(request_id) FROM user_request
+    </entry>
+
+    <entry key="getStockExchanges" >
+SELECT name, symbol FROM STOCK_EXCHANGE
+    </entry>
+
+    <entry key="changeTheme" >
+UPDATE users SET theme = ? WHERE username = ?
+    </entry>
+
+    <entry key="getStockEx" >
+SELECT
+		se.name AS Stock_Exchange,
+		se.symbol,
+		city,
+		country,
+		c.name currency
+		FROM stock_exchange se
+		JOIN place p
+		ON p.place_id
+		= se.place_id
+		JOIN currency c
+		ON c.currency_id=se.currency_id
+		ORDER BY
+		se.name
+    </entry>
+
+    <entry key="brokerWork" >
+SELECT
+		se.name
+		FROM stock_exchange se
+		JOIN
+		broker_stock_ex bsex
+		ON bsex.stock_ex_id=se.stock_ex_id
+		JOIN
+		user_type_bridge utb
+		ON bsex.broker_id = utb.user_id AND utb.type_id=2
+		WHERE utb.user_id = ?
+    </entry>
+
+    <entry key="brokerMoney" >
+SELECT DISTINCT
+		(SELECT SUM(price_total) total_sold
+		FROM trade WHERE sell_broker_id = ?)
+		sold,
+		(SELECT SUM(price_total)
+		total_buy FROM trade where buy_broker_id = ?) buy,
+		( (SELECT
+		SUM(price_total) total_sold FROM trade WHERE sell_broker_id = ?)
+		-
+		(SELECT SUM(price_total) total_buy FROM trade where buy_broker_id
+		=
+		?))
+		Total_From_Trades
+		FROM trade
+    </entry>
+
+    <entry key="sharesHeld" >
+SELECT
+		t.stock_id,
+		l.stock_symbol,
+		c.name as company,
+		x.symbol as exchange_symbol,
+		SUM(case when buyer_id = ? then shares
+		else -1 * shares end) as shares_held
+		FROM trade t
+		JOIN company c
+		ON
+		t.stock_id = c.stock_id
+		JOIN stock_listing l
+		ON l.stock_id = t.stock_id
+		JOIN stock_exchange x
+		ON x.stock_ex_id = l.stock_ex_id
+		WHERE buyer_id =
+		? or seller_id = ?
+		GROUP BY t.stock_id, l.stock_symbol, c.name,
+		x.symbol
+		HAVING SUM(case when buyer_id = ? then shares else -1 * shares
+		end) > 0		ORDER BY t.stock_id
+    </entry>
+
+    <entry key="brokerByStockEx" >
+SELECT
+		u.user_id,
+		u.firstname ||' '|| u.lastname Name,
+		se.name
+		FROM users u
+		JOIN user_type_bridge utb
+		ON utb.user_id=u.user_id
+		JOIN
+		user_type ut
+		ON ut.type_id=utb.type_id
+		JOIN broker_stock_ex bsex
+		ON
+		bsex.broker_id = u.user_id AND utb.type_id=2
+		JOIN stock_exchange se
+		ON
+		se.stock_ex_id=bsex.stock_ex_id
+		WHERE lower(se.name) like ?
+		ORDER BY
+		u.user_id
+    </entry>
+
+    <entry key="brokerByName" >
+SELECT
+		u.user_id ID,
+		u.firstname ||' '|| u.lastname Name
+		FROM users u
+		JOIN user_type_bridge utb
+		ON utb.user_id=u.user_id
+		WHERE
+		utb.type_id = 2 AND lower(u.firstname ||' '|| u.lastname) like ?
+		ORDER
+		BY u.user_id
+    </entry>
+
+    <entry key="companyByName" >
+SELECT
+		c.company_id,
+		c.name,
+		p.city,
+		p.country,
+		sl.stock_symbol,
+		se.name Stock_Exchange
+		FROM company c
+		JOIN place p
+		ON
+		p.place_id = c.place_id
+		JOIN stock_listing sl
+		ON sl.stock_id =
+		c.stock_id
+		JOIN stock_exchange se
+		ON se.stock_ex_id=sl.stock_ex_id
+		WHERE
+		lower(c.name) like ?
+		ORDER BY c.company_id
+    </entry>
+
+    <entry key="companyByCity" >
+SELECT
+		c.company_id,
+		c.name,
+		p.city,
+		p.country,
+		sl.stock_symbol,
+		se.name Stock_Exchange
+		FROM company c
+		JOIN place p
+		ON
+		p.place_id = c.place_id
+		JOIN stock_listing sl
+		ON sl.stock_id =
+		c.stock_id
+		JOIN stock_exchange se
+		ON se.stock_ex_id=sl.stock_ex_id
+		WHERE
+		lower(p.city) like ?
+		ORDER BY c.company_id
+    </entry>
+
+    <entry key="companyByCountry" >
+SELECT
+		c.company_id,
+		c.name,
+		p.city,
+		p.country,
+		sl.stock_symbol,
+		se.name Stock_Exchange
+		FROM company c
+		JOIN place p
+		ON
+		p.place_id = c.place_id
+		JOIN stock_listing sl
+		ON sl.stock_id =
+		c.stock_id
+		JOIN stock_exchange se
+		ON se.stock_ex_id=sl.stock_ex_id
+		WHERE
+		lower(p.country) like ?
+		ORDER BY c.company_id
+    </entry>
+
+    <entry key="companyByStockSymbol" >
+SELECT
+		c.company_id,
+		c.name,
+		p.city,
+		p.country,
+		sl.stock_symbol,
+		se.name Stock_Exchange
+		FROM company c
+		JOIN place p
+		ON
+		p.place_id = c.place_id
+		JOIN stock_listing sl
+		ON sl.stock_id =
+		c.stock_id
+		JOIN stock_exchange se
+		ON se.stock_ex_id=sl.stock_ex_id
+		WHERE
+		lower(sl.stock_symbol) like ?
+		ORDER BY c.company_id
+    </entry>
+
+    <entry key="companyByStockEx" >
+SELECT
+		c.company_id,
+		c.name,
+		p.city,
+		p.country,
+		sl.stock_symbol,
+		se.name Stock_Exchange
+		FROM company c
+		JOIN place p
+		ON
+		p.place_id = c.place_id
+		JOIN stock_listing sl
+		ON sl.stock_id =
+		c.stock_id
+		JOIN stock_exchange se
+		ON se.stock_ex_id=sl.stock_ex_id
+		WHERE
+		lower(se.name) like ?
+		ORDER BY c.company_id
+    </entry>
+
+    <entry key="AvailableStockByName" >
+SELECT
+		c.stock_id,
+		y.name,
+		l.stock_symbol,
+		v.total_outstanding Available_Shares,
+		c.price as current_price
+		FROM
+		stock_price c
+		JOIN (
+		SELECT stock_ex_id, stock_id, price, time_end
+		FROM
+		stock_price o
+		WHERE time_end = (SELECT MAX(time_end) FROM stock_price i
+		WHERE o.stock_id
+		= i.stock_id AND o.stock_ex_id = i.stock_ex_id)
+		) p ON
+		p.stock_ex_id = c.stock_ex_id AND p.stock_id = c.stock_id
+		JOIN
+		stock_listing l ON l.stock_ex_id = c.stock_ex_id AND l.stock_id =
+		c.stock_id
+		JOIN company y ON y.stock_id = c.stock_id
+		JOIN
+		current_stock_stats v
+		ON v.stock_id = c.stock_id
+		WHERE c.time_end IS
+		NULL AND lower(y.name) LIKE ?
+		ORDER BY c.stock_id
+    </entry>
+
+    <entry key="AvailableStockByPrice" >
+SELECT
+		c.stock_id,
+		y.name,
+		l.stock_symbol,
+		v.total_outstanding Available_Shares,
+		c.price as current_price
+		FROM
+		stock_price c
+		JOIN (
+		SELECT stock_ex_id, stock_id, price, time_end
+		FROM
+		stock_price o
+		WHERE time_end = (SELECT MAX(time_end) FROM stock_price i
+		WHERE o.stock_id
+		= i.stock_id AND o.stock_ex_id = i.stock_ex_id)
+		) p ON
+		p.stock_ex_id = c.stock_ex_id AND p.stock_id = c.stock_id
+		JOIN
+		stock_listing l ON l.stock_ex_id = c.stock_ex_id AND l.stock_id =
+		c.stock_id
+		JOIN company y ON y.stock_id = c.stock_id
+		JOIN
+		current_stock_stats v
+		ON v.stock_id = c.stock_id
+		WHERE c.time_end IS
+		NULL AND (c.price > ? AND c.price &lt; ?)
+		ORDER BY c.stock_id
+    </entry>
+
+    <entry key="ShareTicker" >
+SELECT
+		y.stock_id,
+		y.name,
+		l.stock_symbol,
+		c.price as
+		current_price,
+		p.price as old_price,
+		c.price - p.price as price_change
+		FROM stock_price c
+		JOIN (
+		SELECT stock_ex_id, stock_id, price, time_end
+		FROM stock_price o
+		WHERE time_end = (SELECT MAX(time_end) FROM
+		stock_price i WHERE o.stock_id
+		= i.stock_id AND o.stock_ex_id =
+		i.stock_ex_id)
+		) p on p.stock_ex_id = c.stock_ex_id and p.stock_id =
+		c.stock_id
+		JOIN stock_listing l ON l.stock_ex_id = c.stock_ex_id AND
+		l.stock_id =
+		c.stock_id
+		JOIN company y ON y.stock_id = c.stock_id
+		WHERE
+		c.time_end is null AND y.stock_id IN (?,?,?,?,?,?,?,?)
+		ORDER BY
+		y.stock_id
+    </entry>
+
+    <entry key="updateTickerData" >
+UPDATE users SET ticker = ? WHERE user_id = ?
+    </entry>
+
+    <entry key="checkBoxStocks" >
+ SELECT DISTINCT
+		c.stock_id,
+		c.name
+		FROM company c
+		JOIN stock_listing l
+		ON l.stock_id = c.stock_id
+		ORDER BY c.stock_id
+    </entry>
+
+    <entry key="getBrokersByStockID" >
+	      SELECT
+	      u.user_id,
+u.firstname||' '||u.lastname AS Broker_Name
+FROM stock_listing l
+  JOIN broker_stock_ex bsex
+    ON l.stock_ex_id = bsex.stock_ex_id
+  JOIN user_type_bridge utb
+    ON bsex.broker_id = utb.user_id AND utb.type_id = 2
+  JOIN users u
+    ON u.user_id = utb.user_id
+WHERE stock_id = ?
+ORDER BY stock_id
+    </entry>
+    <entry key="makeTradeRequest">INSERT INTO shareholder_request VALUES (?,?,?,?,?,?,?)</entry>
+    <entry key="availableShares">  
+        SELECT a.stock_id,c.name as Company,l.stock_symbol,se.name as Stock_Exchange,sum(available) as Available_Shares,p.price as Current_Price
+  FROM
+  (select
+  stock_id,
+  shares AS available
+  from shareholder_request
+  where transaction_type = 'SELL'
+  UNION
+  select
+  stock_id,
+  total_outstanding AS available
+  from current_stock_stats) a
+    JOIN company c ON c.stock_id=a.stock_id
+    JOIN stock_listing l ON l.stock_id = a.stock_id
+    JOIN stock_price p ON p.stock_id = l.stock_id AND p.stock_ex_id = l.stock_ex_id
+    JOIN stock_exchange se ON se.stock_ex_id = l.stock_ex_id
+  WHERE p.time_end IS NULL
+  GROUP BY a.stock_id,c.name,l.stock_symbol,p.price,se.name
+  ORDER BY a.stock_id
+  </entry>
+</properties>

@@ -1,0 +1,65 @@
+Oracle Connection
+86.5476.84 
+Port    : 1521 
+Service : XE
+Hostname: ORABTN001
+Username: anthonygaro
+Password: oracle
+
+dataSource.setDriverType = thin
+		  .setDatabaseName = xe
+		  .setServername = localhost
+		  
+Connection = manager.getDataSourceConnection();
+
+BLOB
+CLOB?
+Object relational Mapping = ORM
+
+		<dependency>
+			<groupId>ojdbc</groupId>
+			<artifactId>OJDBC</artifactId>
+			<version>11.2.0.3</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/ojdbc6.jar</systemPath>
+		</dependency>
+		
+JNDI
+Tomcat
+Servlets
+
+/*remove_user Command*/
+SELECT 
+username
+FROM users
+  WHERE (isverified = 'true'AND status != 'removed') OR (isverified = 'true'AND status is null)
+  ORDER BY user_id;
+
+/*add user command*/
+SELECT
+username
+FROM users
+WHERE isverified = 'false'
+order by user_id;
+
+/*ban user command*/
+SELECT
+username
+FROM users
+WHERE status != 'banned' OR status  is null
+order by user_id;
+
+/*View Certain type of users*/
+SELECT
+u.username,
+type
+FROM users u
+JOIN user_type_bridge utb
+  ON u.user_id = utb.user_id
+JOIN user_type ut
+  ON ut.type_id = utb.type_id
+WHERE ut.type_id = 4 <--Change to ? 1=Admin 2=Broker 3=SE Manager 4=Share Holder
+ORDER BY u.user_id;
+
+
+

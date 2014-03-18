@@ -1,0 +1,9 @@
+<div id="SEDiv">
+	<ul id="SEMenu">
+		<li><a href="/TPProject5/manager">Home</a>
+		<li><a href="/TPProject5/shManagement">ShareHolder Management</a></li>
+		<li><a href="/TPProject5/bManagement">Broker Management</a></li>
+		<li><a href="/TPProject5/cManagement">Company Management</a></li>
+		<li><a href="/TPProject5/logoff">Logoff</a>
+	</ul>
+</div>

@@ -1,0 +1,226 @@
+Oracle Connection
+86.5476.84 
+Port    : 1521 
+Service : XE
+Hostname: ORABTN001
+Username: anthonygaro
+Password: oracle
+
+dataSource.setDriverType = thin
+		  .setDatabaseName = xe
+		  .setServername = localhost
+		  
+Connection = manager.getDataSourceConnection();
+
+BLOB
+CLOB?
+Object relational Mapping = ORM
+
+		<dependency>
+			<groupId>ojdbc</groupId>
+			<artifactId>OJDBC</artifactId>
+			<version>11.2.0.3</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/ojdbc6.jar</systemPath>
+		</dependency>
+		
+JNDI
+Tomcat
+Servlets
+
+/*remove_user Command*/
+SELECT 
+username
+FROM users
+  WHERE (isverified = 'true'AND status != 'removed') OR (isverified = 'true'AND status is null)
+  ORDER BY user_id;
+
+/*add user command*/
+SELECT
+username
+FROM users
+WHERE isverified = 'false'
+order by user_id;
+
+/*ban user command*/
+SELECT
+username
+FROM users
+WHERE status != 'banned' OR status  is null
+order by user_id;
+
+/*View Certain type of users*/
+SELECT
+u.username,
+type
+FROM users u
+JOIN user_type_bridge utb
+  ON u.user_id = utb.user_id
+JOIN user_type ut
+  ON ut.type_id = utb.type_id
+WHERE ut.type_id = 4 <--Change to ? 1=Admin 2=Broker 3=SE Manager 4=Share Holder
+ORDER BY u.user_id;
+
+
+/*VIEW COMPANY INFO: Search by Company Stock Symbol*/
+SELECT DISTINCT
+c.company_id,
+c.name Company_Name,
+sl.stock_symbol,
+se.name Stock_Exchange,
+p.city ||', '|| p.country Location,
+cu.name Currency,
+price
+FROM company c
+  JOIN trade t
+    ON t.stock_id = c.stock_id
+  JOIN stock_exchange se
+    ON t.stock_ex_id = se.stock_ex_id
+  JOIN currency cu
+    ON cu.currency_id = se.currency_id
+  JOIN place p
+    ON p.place_id = c.place_id
+  JOIN stock_listing sl
+    ON sl.stock_id = t.stock_id
+  JOIN stock_price sp
+    ON t.stock_id = sp.stock_id
+WHERE sl.stock_symbol = ? AND time_end is null <--can be switched to search by company name
+ORDER BY c.company_id
+    ;
+    
+/* VIEW BROKERS BY STOCK EXCHANGE NAME */
+SELECT DISTINCT
+b.broker_id,
+first_name ||' '|| last_name Name,
+se.Name Stock_Exchange
+FROM broker b
+  JOIN broker_stock_ex bse
+    ON bse.broker_id = b.broker_id
+  JOIN stock_exchange se
+    ON bse.stock_ex_id = se.stock_ex_id
+    WHERE se.name = ? <-- this can come from a drop down menu???
+ORDER BY name
+    ;
+
+/* GET COLUMNNAMES FROM RESULT SET */
+ ResultSet rs = stmt.executeQuery("SELECT a, b, c FROM TABLE2");
+ ResultSetMetaData rsmd = rs.getMetaData();
+ String name = rsmd.getColumnName(1);
+ 
+ResultSet rs = stmt.executeQuery("SELECT a, b, c FROM TABLE2");
+ResultSetMetaData rsmd = rs.getMetaData();
+int columnCount = rsmd.getColumnCount();
+
+// The column count starts from 1
+for (int i = 1; i < columnCount + 1; i++ ) {
+  String name = rsmd.getColumnName(i);
+  // Do stuff with name
+}
+
+select * from user_constraints
+where constraint_type = 'R'
+and R_constraint_name = 'DIRECT_HOLDER_PK'
+;
+
+BROKERS FOR VIEWING BROKERS // NEEDS WORK // MAKE STOCK EXCHANGES ITS OWN QUERY !!! **********
+SELECT DISTINCT
+u.user_id,
+u.username,
+se.name,
+( (SELECT SUM(price_total) total_sold FROM trade WHERE sell_broker_id = ?) - (SELECT SUM(price_total) total_buy FROM trade where buy_broker_id = ?)) Total_From_Trades 
+FROM users u
+  JOIN user_type_bridge utb
+    ON utb.user_id = u.user_id
+  JOIN broker_stock_ex bsex
+    ON bsex.broker_id = utb.user_id AND utb.type_id=2
+  JOIN STOCK_EXCHANGE se
+    ON se.stock_ex_id = bsex.stock_ex_id
+where u.user_id = ?
+
+SELECT
+SUM(price_total) total_buy
+FROM trade 
+where buy_broker_id = 6
+;
+
+
+SELECT 
+SUM(price_total) total_sold
+FROM trade
+WHERE sell_broker_id = 6
+;
+
+select distinct
+  (SELECT SUM(price_total) total_sold FROM trade WHERE sell_broker_id = 6) sold,
+  (SELECT SUM(price_total) total_buy FROM trade where buy_broker_id = 6) buy,
+  ( (SELECT SUM(price_total) total_sold FROM trade WHERE sell_broker_id = 6) - (SELECT SUM(price_total) total_buy FROM trade where buy_broker_id = 6)) Total_From_Trades 
+  FROM trade
+  ;
+  
+  /*BROKER PLACE OF WORK*/
+SELECT
+se.name
+FROM stock_exchange se
+  JOIN broker_stock_ex bsex
+    ON bsex.stock_ex_id=se.stock_ex_id
+  JOIN user_type_bridge utb
+    ON bsex.broker_id = utb.user_id AND utb.type_id=2
+WHERE utb.user_id = ?
+
+/*TOTAL SHARES || ISSUED || DIFFERENCE*/
+select
+s.stock_id,
+s.issued,
+sum(shares) Total_Original_Shares,
+sum(shares)-s.issued "Total - Issued"
+from shares_issued s
+  join trade t
+    on t.stock_id=s.stock_id
+where time_end is null
+group by s.stock_id,s.issued
+order by s.stock_id
+
+/*SHARES CURRENTLY HELD*/
+select
+u.username,
+t.stock_id, 
+l.stock_symbol, 
+c.name as company, 
+x.symbol as exchange_symbol,
+sum(case when buyer_id = 19 then shares else -1 * shares end) as shares_held
+from trade t
+  join company c 
+    on t.stock_id = c.stock_id
+  join stock_listing l 
+    on l.stock_id = t.stock_id
+  join stock_exchange x 
+    on x.stock_ex_id = l.stock_ex_id
+  join users u
+    on (u.user_id = t.buyer_id)
+where buyer_id = 19 or seller_id = 19
+group by t.stock_id, l.stock_symbol, c.name, x.symbol, u.username
+having sum(case when buyer_id = 19 then shares else -1 * shares end) > 0
+
+/************************* AVAILABLE SHARES **************************/
+select distinct
+v.stock_id,
+c.name,
+l.stock_symbol,
+v.total_outstanding Available_Shares,
+sp.price as current_price
+from current_stock_stats v
+  join stock_listing l
+    on l.stock_id = v.stock_id
+  join company c
+    on c.stock_id=l.stock_id
+  join stock_price sp
+    on sp.stock_id=c.stock_id
+  join (
+   select stock_id, price, time_end
+   from stock_price outer
+   where time_end = (select max(time_end) from stock_price inner where outer.stock_id = inner.stock_id)
+   order by stock_id, time_end desc
+   ) o on o.stock_id = sp.stock_id
+  where sp.time_end is null
+  order by stock_id
+;

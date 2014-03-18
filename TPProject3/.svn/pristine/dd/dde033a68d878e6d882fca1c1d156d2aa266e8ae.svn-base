@@ -1,0 +1,3 @@
+	<c:if test="${isShare_Holder == true}">
+		<marquee id=ticker>${shareTicker}</marquee>
+	</c:if>

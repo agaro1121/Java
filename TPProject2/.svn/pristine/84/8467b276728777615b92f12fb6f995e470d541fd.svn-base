@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+		<comment>JDBC Configuration</comment>
+
+		<entry key="username">anthonygaro</entry>
+		<entry key="port">1521</entry>
+		<entry key="service">xe</entry>
+		<entry key="host">ORABTN001</entry>
+		<entry key="password">oracle</entry>
+		<entry key="url">jdbc:oracle:thin:@ORABTN001:1521:xe</entry>
+		<entry key="driver">oracle.jdbc.driver.OracleDriver</entry>
+		<entry key="urlHome">jdbc:oracle:thin:@86.54.76.84:1521:xe</entry>
+
+</properties>

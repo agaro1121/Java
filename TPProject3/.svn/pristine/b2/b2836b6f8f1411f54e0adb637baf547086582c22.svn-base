@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+
+<properties>
+			<comment>Page List(without Action)</comment>
+				
+	<entry key="ShareHolderPage">WEB-INF/ShareHolder.jsp</entry>
+	<entry key="searchPage">WEB-INF/SHPages/Search.jsp</entry>
+
+</properties>
