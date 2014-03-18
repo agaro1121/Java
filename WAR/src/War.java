@@ -80,13 +80,13 @@ public class War {
 	}
 
 	private static void distributeDeck() {
-		for(int i=0; i<deck.size();i++){
+		for(int i=0; i<52;i++){
 			if(i%2 == 0){//alternates card distribution
-				hand1.add(deck.get(i));
+				hand1.add(deck.get(0));
 			}else{
-				hand2.add(deck.get(i));
+				hand2.add(deck.get(0));
 			}
-			deck.remove(i);
+			deck.remove(0);
 		}
 	}
 
