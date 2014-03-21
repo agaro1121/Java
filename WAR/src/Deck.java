@@ -6,11 +6,8 @@ public class Deck extends ArrayList<Card>{
 	private static final long serialVersionUID = 1L;
 
 	public Deck() {
-		Suit[] suits = Suit.values();
-		Rank[] ranks = Rank.values();
-
-		for (Suit suit : suits) {
-			for (Rank rank : ranks) {
+		for (Suit suit : Suit.values()) {
+			for (Rank rank : Rank.values()) {
 				add(new Card(suit, rank));
 			}
 		}
