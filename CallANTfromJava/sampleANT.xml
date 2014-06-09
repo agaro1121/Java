@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<project default="main" basedir=".">
+	
+
+ <target name="main" >
+  	 <echo>Saluton Mondo from Ant !</echo>
+  </target>
+  
+	<target name="myTarget">
+		<echo>My Target bitches !</echo>
+	</target>
+	
+</project>
