@@ -1,6 +1,6 @@
 
 myTarget:
-     [echo] My Target bitches !
+     [echo] My Target bitches ! hello world
 
 BUILD SUCCESSFUL
 Total time: 0 seconds

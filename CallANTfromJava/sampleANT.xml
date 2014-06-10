@@ -8,7 +8,7 @@
   </target>
   
 	<target name="myTarget">
-		<echo>My Target bitches !</echo>
+		<echo>My Target bitches ! ${test}</echo>
 	</target>
 	
 </project>
