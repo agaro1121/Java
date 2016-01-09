@@ -1,8 +1,0 @@
-port=1521
-service=xe
-host=ORABTN001
-username=anthonygaro
-password=oracle
-url=jdbc:oracle:thin:@ORABTN001:1521:XE
-driver=oracle.jdbc.driver.OracleDriver
-urlHome=jdbc:oracle:thin:86.54.76.84:1521:xe
